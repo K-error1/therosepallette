@@ -20,17 +20,17 @@ export default function Gallery() {
     });
   }, []);
 
-  const categories = ['all', 'Paintings', 'Drawings'];
+  const categories = ['all', 'Paintings', 'Print Only'];
 
   const filteredArtworks = artworks.filter((item) => {
     // Category match
     let categoryMatch = false;
-    if (
-      selectedCategory === 'all' ||
-      selectedCategory.toLowerCase() === 'paintings' ||
-      selectedCategory.toLowerCase() === 'drawings'
-    ) {
+    if (selectedCategory === 'all') {
       categoryMatch = true;
+    } else if (selectedCategory.toLowerCase() === 'paintings') {
+      categoryMatch = item.type === 'original' || item.type === 'both';
+    } else if (selectedCategory.toLowerCase() === 'print only') {
+      categoryMatch = item.type === 'print';
     } else {
       categoryMatch = item.category?.some(
         (c) => c.toLowerCase() === selectedCategory.toLowerCase()
@@ -179,9 +179,7 @@ export default function Gallery() {
                             ? 'Sold'
                             : work.type === 'print'
                             ? 'Print Only'
-                            : work.type === 'both'
-                            ? 'Original'
-                            : 'Original Work'}
+                            : 'Painting'}
                         </div>
                       </Link>
 
