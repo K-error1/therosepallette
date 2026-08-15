@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", "Avenir Next", "Segoe UI", sans-serif;
+  background: #0c0a09;
+}
