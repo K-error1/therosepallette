@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { useEffect } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
@@ -44,6 +45,7 @@ export default function App() {
           </div>
           <Footer />
         </div>
+        <SpeedInsights />
       </Router>
     </HelmetProvider>
   );
