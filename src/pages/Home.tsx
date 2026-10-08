@@ -1,20 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { fetchArtworks } from '../lib/sanity';
-import { Artwork } from '../types/artwork';
+import { useArtworks } from '../hooks/useArtworks';
 import { ArrowRight, Sparkles } from 'lucide-react';
 
 export default function Home() {
-  const [works, setWorks] = useState<Artwork[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { artworks, loading } = useArtworks('all');
 
-  useEffect(() => {
-    fetchArtworks().then((data) => {
-      setWorks(data.filter((w) => w.featured));
-      setLoading(false);
-    });
-  }, []);
+  const featuredWorks = useMemo(() => {
+    const featured = artworks.filter((w) => w.featured);
+    return featured.length > 0 ? featured.slice(0, 3) : artworks.slice(0, 3);
+  }, [artworks]);
 
   return (
     <div className="bg-stone-950 text-stone-100">
@@ -39,49 +35,48 @@ export default function Home() {
           >
             <div className="inline-flex items-center gap-2 border border-amber-300/40 bg-stone-900/60 backdrop-blur-sm px-3 sm:px-4 py-1 text-xs tracking-widest text-amber-200 uppercase">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Studio Collection & Print Shop</span>
+              <span>Contemporary Fine Art · Nairobi, Kenya</span>
             </div>
 
-            {/* TODO: Customize Artist Name */}
-            <p className="font-serif text-5xl leading-none tracking-[0.08em] text-white sm:text-7xl lg:text-8xl">
-              THEROSEPALLETTE
-            </p>
-
-            {/* TODO: Customize Artist Headline */}
-            <h1 className="max-w-2xl text-xl font-light leading-relaxed text-stone-200 sm:text-3xl font-sans">
-              Nairobi-Kenya based visual artist.Exploring identity, memory, and the boundary between observer and observed through the "Crows" lens
+            <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl tracking-tight text-white leading-[1.05]">
+              THEROSE<br />
+              <span className="italic font-light text-stone-300">PALLETTE</span>
             </h1>
 
-            <div className="flex flex-wrap items-center gap-4 pt-4">
+            <p className="text-stone-300 text-base sm:text-lg max-w-2xl font-light leading-relaxed">
+              Explorations of texture, natural pigments, and African heritage landscapes. Original oil, acrylic, and charcoal compositions for private and institutional collectors worldwide.
+            </p>
+
+            <div className="flex flex-wrap gap-4 pt-4">
               <Link
                 to="/gallery"
-                className="border border-white bg-white px-8 py-3.5 text-xs font-semibold uppercase tracking-widest text-black transition hover:bg-transparent hover:text-white"
+                className="bg-amber-300 hover:bg-amber-200 text-stone-950 px-8 py-3.5 text-xs uppercase tracking-widest font-semibold transition"
               >
-                Explore Works & Shop
+                Explore Collection
               </Link>
               <Link
-                to="/contact"
-                className="text-xs uppercase tracking-widest text-stone-200 border border-stone-700 px-6 py-3.5 transition hover:border-amber-200 hover:text-amber-200"
+                to="/about"
+                className="border border-stone-600 hover:border-amber-200 text-stone-200 px-8 py-3.5 text-xs uppercase tracking-widest transition"
               >
-                Commission Inquiry
+                The Artist
               </Link>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Featured Works Section */}
-      <section className="mx-auto max-w-7xl px-6 py-24 sm:px-10 lg:px-16 space-y-12">
+      {/* Featured Artwork Teaser */}
+      <section className="py-24 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto space-y-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-stone-800 pb-6">
-          <div className="space-y-2">
+          <div>
             <span className="text-xs uppercase tracking-widest text-amber-300 font-medium">Curated Selection</span>
-            <h2 className="font-serif text-4xl text-white sm:text-5xl">Featured Artworks</h2>
+            <h2 className="font-serif text-3xl sm:text-5xl text-white mt-1">Featured Compositions</h2>
           </div>
           <Link
             to="/gallery"
             className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-stone-300 hover:text-amber-200 transition"
           >
-            <span>View All Works ({works.length > 0 ? works.length : '6+'})</span>
+            <span>View All Works ({artworks.length > 0 ? artworks.length : '6+'})</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -94,47 +89,64 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {works.map((work, index) => {
-              const mainImg = work.images?.[0]?.url || 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5';
+            {featuredWorks.map((work, index) => {
+              const mainImg = work.image_url || '/placeholder-artwork.jpg';
               return (
                 <motion.article
-                  key={work._id}
+                  key={work.id}
                   initial={{ y: 24, opacity: 0 }}
                   whileInView={{ y: 0, opacity: 1 }}
                   viewport={{ once: true, amount: 0.25 }}
                   transition={{ duration: 0.55, ease: 'easeOut', delay: index * 0.08 }}
                   className="group flex flex-col justify-between border border-stone-900 bg-stone-950 p-3 hover:border-stone-800 transition"
                 >
-                  <Link to={`/artwork/${work.slug.current}`} className="block overflow-hidden relative">
+                  <Link to={`/artwork/${work.slug}`} className="block overflow-hidden relative bg-stone-900">
                     <motion.img
                       whileHover={{ scale: 1.05 }}
                       transition={{ duration: 0.45, ease: 'easeOut' }}
                       src={mainImg}
                       alt={work.title}
+                      loading="lazy"
                       className="h-80 w-full object-cover"
                     />
-                    <div className="absolute top-3 right-3 bg-stone-950/80 backdrop-blur-md px-2.5 py-1 text-[10px] uppercase tracking-widest text-stone-300 border border-stone-800">
-                      {work.status === 'sold' ? 'Sold' : work.status === 'inquire' ? 'Inquire' : 'Available'}
+                    <div
+                      className={`absolute top-3 right-3 px-2.5 py-1 text-[10px] uppercase tracking-widest border backdrop-blur-md ${
+                        work.status === 'sold'
+                          ? 'bg-black/90 text-red-300 border-red-500/40 font-semibold'
+                          : work.status === 'not_for_sale'
+                          ? 'bg-stone-950/80 text-stone-400 border-stone-700'
+                          : 'bg-stone-950/80 text-emerald-300 border-emerald-500/30'
+                      }`}
+                    >
+                      {work.status === 'sold'
+                        ? 'Sold'
+                        : work.status === 'not_for_sale'
+                        ? 'Private Collection'
+                        : 'Available'}
                     </div>
                   </Link>
 
                   <div className="space-y-1.5 pt-4 px-1 pb-2">
                     <div className="flex items-baseline justify-between">
-                      <Link to={`/artwork/${work.slug.current}`}>
+                      <Link to={`/artwork/${work.slug}`}>
                         <h3 className="text-lg font-medium text-white group-hover:text-amber-200 transition">
                           {work.title}
                         </h3>
                       </Link>
-                      <span className="text-xs text-stone-400 font-mono">{work.year}</span>
+                      {work.year && <span className="text-xs text-stone-400 font-mono">{work.year}</span>}
                     </div>
-                    <p className="text-xs text-stone-400">{work.medium}</p>
+                    {work.medium && <p className="text-xs text-stone-400">{work.medium}</p>}
 
                     <div className="flex items-center justify-between pt-2 border-t border-stone-900 text-xs">
                       <span className="text-stone-300 font-medium">
-                        {work.price?.kes ? `KES ${work.price.kes.toLocaleString()}` : 'Price on Inquiry'}
+                        {work.status === 'sold'
+                          ? 'Acquired'
+                          : work.price
+                          ? `KES ${Number(work.price).toLocaleString()}`
+                          : 'Price on Inquiry'}
                       </span>
                       <Link
-                        to={`/artwork/${work.slug.current}`}
+                        to={`/artwork/${work.slug}`}
                         className="text-amber-300/80 hover:text-amber-200 font-medium uppercase tracking-widest text-[10px]"
                       >
                         View Details →
@@ -148,37 +160,20 @@ export default function Home() {
         )}
       </section>
 
-      {/* Artist Statement Teaser */}
-      <section className="border-y border-stone-900 bg-stone-950/60 py-20 px-6 sm:px-10 lg:px-16">
-        <div className="mx-auto max-w-7xl grid gap-12 lg:grid-cols-2 items-center">
-          <div className="space-y-6">
-            <span className="text-xs uppercase tracking-widest text-amber-300 font-medium">Artist Statement</span>
-            {/* TODO: Customize Artist Philosophy */}
-            <h2 className="font-serif text-4xl text-white sm:text-5xl leading-tight">
-              "I paint the discomfort of being seen — fusing human and crow to ask who's really watching whom."
-            </h2>
-            {/* TODO: Customize Bio Teaser Text */}
-            <p className="text-stone-300 text-base leading-relaxed">
-             My work sits inside that discomfort. I fuse human forms with crow skulls and features not to make a costume, but to ask a genuine question: when you are the one being watched, what does that do to your sense of self? And more importantly, who is actually watching you through the parts of your life no one else sees? Usually, the answer is uncomfortable in its simplicity: you are.
-            </p>
-            <div>
-              <Link
-                to="/about"
-                className="inline-flex items-center gap-2 border border-stone-700 px-6 py-3 text-xs uppercase tracking-widest text-stone-200 hover:border-amber-200 hover:text-amber-200 transition"
-              >
-                <span>Read Full Biography & CV</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-
-          <div className="relative">
-            {/* TODO: Replace photo with actual portrait of artist in studio */}
-            <img
-              src="/artist-portrait.jpg"
-              alt="THEROSEPALLETTE in studio"
-              className="h-[32rem] w-full object-cover rounded border border-stone-800"
-            />
+      {/* Philosophy Statement Banner */}
+      <section className="bg-stone-900/60 border-y border-stone-800 py-20 px-6 sm:px-10 lg:px-16">
+        <div className="max-w-4xl mx-auto text-center space-y-6">
+          <span className="text-xs uppercase tracking-widest text-amber-300 font-mono">Studio Philosophy</span>
+          <p className="font-serif text-2xl sm:text-4xl text-white font-light italic leading-relaxed">
+            "Every brushstroke honors the raw texture of East African soil, the stillness of dusk, and the living soul of organic materials."
+          </p>
+          <div className="pt-4">
+            <Link
+              to="/about"
+              className="text-xs uppercase tracking-widest text-stone-300 hover:text-amber-200 border-b border-amber-300 pb-1"
+            >
+              Read Full Biography & Exhibitions
+            </Link>
           </div>
         </div>
       </section>
